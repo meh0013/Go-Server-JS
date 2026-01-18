@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel='stylesheet' href='../frontend/styles.css'>
+</head>
+<body>
+   <form id="container">
+        <div class="box">
+            <p>Professor Details</p>
+
+          <!-- Name Field -->
+          <div class="row">
+            <label for="entry">Name:</label>
+            <input type="text" class="input-field" id="name-input" name="entry" placeholder="Type here...">
+          </div>  
+          
+          <!-- Contact Field -->
+          <div class="row">
+            <label for="entry">Contact:</label>
+            <input type="text" class="input-field" id="contact-input" name="entry" placeholder="0123456789...">
+          </div>
+
+          <!-- Website Field -->
+          <div class="row">
+            <label for="entry">Website:</label>
+            <input type="text" class="input-field" id="website-input" name="entry" placeholder="johndoe@gmail.com...">
+          </div>
+
+          <!-- Domain Field -->
+          <div class="row">
+            <label for="entry">Domain:</label>
+            <input type="text" class="input-field" id="domain-input" name="entry" placeholder="UI/UX, AI/ML...">
+          </div>
+
+        </div>
+        <div class="button-container">
+            <button type="button" onclick="submitFunc();">Submit</button>
+            <button type="button">Get Data</button>
+        </div>
+    </form>
+<p id="output"></p>
+
+<script src='../frontend/script.js'></script>
+</body>
+</html>
