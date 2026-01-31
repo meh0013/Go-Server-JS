@@ -6,10 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"sync"
 )
 
@@ -43,10 +41,11 @@ func enableCORS(next http.Handler) http.Handler {
 	})
 }
 
+/*
 // handler serves the index.html file
 func handler(w http.ResponseWriter, r *http.Request) {
 	// Open the HTML file
-	file, err := os.Open("./frontend/index.html")
+	file, err := os.Open("../frontend/")
 	if err != nil {
 		// If file not found, return 404
 		http.Error(w, "File not found", http.StatusNotFound)
@@ -70,6 +69,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// Write the file content to the response
 	http.ServeContent(w, r, "index.html", fileInfo.ModTime(), file)
 }
+*/
 
 func openBrowser(url string) error {
 	var cmd string
@@ -91,31 +91,46 @@ func openBrowser(url string) error {
 }
 
 func main() {
-	// http.HandleFunc("/posts", postsHandler)
+	// http.HandleFunc("/posts", postsHandler) - API
 	http.Handle("/posts", enableCORS(http.HandlerFunc(postsHandler)))
+
+	//Frontend
+	/*
+		http.HandleFunc("/", handler)
+		addr := ":8080"
+		url := "http://localhost" + addr
+		log.Printf("Server running at %s", url)
+		go openBrowser(url)
+	*/
+	fs := http.FileServer(http.Dir("../frontend"))
+	http.Handle("/", fs)
+
+	addr := ":8080"
+	url := "http://localhost" + addr
+
+	log.Printf("Server running at %s", url)
+	go openBrowser(url)
 
 	fmt.Println("Server is running at http:localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 
-	http.HandleFunc("/", handler)
-	addr := ":3000"
-	url := "http://localhost" + addr
+	/*
+		//Start the server
+		go func() {
+			log.Printf("Starting the server on %s", addr)
+			err := http.ListenAndServe(addr, nil)
+			if err != nil {
+				log.Fatalf("Listen and serve error: %v", err)
+			}
+		}()
 
-	//Start the server
-	go func() {
-		log.Printf("Starting the server on %s", addr)
-		err := http.ListenAndServe(addr, nil)
+		//Open the browser after the server is up
+		log.Printf("Opening the server at: %s in your default browser", url)
+		err := openBrowser(url)
 		if err != nil {
-			log.Fatalf("Listen and serve error: %v", err)
+			log.Printf("The server failed to open at %v, visit %v yourself", err, url)
 		}
-	}()
-
-	//Open the browser after the server is up
-	log.Printf("Opening the server at: %s in your default browser", url)
-	err := openBrowser(url)
-	if err != nil {
-		log.Printf("The server failed to open at %v, visit %v yourself", err, url)
-	}
+	*/
 
 }
 
