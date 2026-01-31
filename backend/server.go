@@ -6,6 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
+	"runtime"
+	"strconv"
 	"sync"
 )
 
@@ -31,14 +35,59 @@ func enableCORS(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-
 		next.ServeHTTP(w, r)
 	})
+}
+
+// handler serves the index.html file
+func handler(w http.ResponseWriter, r *http.Request) {
+	// Open the HTML file
+	file, err := os.Open("./frontend/index.html")
+	if err != nil {
+		// If file not found, return 404
+		http.Error(w, "File not found", http.StatusNotFound)
+		log.Printf("Error opening file: %v", err)
+		return
+	}
+	defer file.Close() // Ensure the file is closed when done
+
+	// Get file info to set the Content-Length header
+	fileInfo, err := file.Stat()
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		log.Printf("Error getting file info: %v", err)
+		return
+	}
+
+	// Set headers (optional but good practice)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Length", strconv.FormatInt(fileInfo.Size(), 10))
+
+	// Write the file content to the response
+	http.ServeContent(w, r, "index.html", fileInfo.ModTime(), file)
+}
+
+func openBrowser(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin": //macOS
+		cmd = "open"
+	default: //Linux, BSD, etc.
+		cmd = "xdg-open"
+	}
+
+	args = append(args, url)
+
+	return exec.Command(cmd, args...).Start()
 }
 
 func main() {
@@ -47,6 +96,27 @@ func main() {
 
 	fmt.Println("Server is running at http:localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	http.HandleFunc("/", handler)
+	addr := ":3000"
+	url := "http://localhost" + addr
+
+	//Start the server
+	go func() {
+		log.Printf("Starting the server on %s", addr)
+		err := http.ListenAndServe(addr, nil)
+		if err != nil {
+			log.Fatalf("Listen and serve error: %v", err)
+		}
+	}()
+
+	//Open the browser after the server is up
+	log.Printf("Opening the server at: %s in your default browser", url)
+	err := openBrowser(url)
+	if err != nil {
+		log.Printf("The server failed to open at %v, visit %v yourself", err, url)
+	}
+
 }
 
 // PostsHandler
